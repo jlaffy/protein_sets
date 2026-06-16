@@ -15,9 +15,10 @@
     <span class="brand">protein_sets</span>
     <nav>
       <a href="index.html">Home</a>
-      <a href="vignettes.html">Vignettes</a>
       <a href="#catalog">Catalog</a>
+      <a href="#claude">Claude skill</a>
       <a href="#install">Install</a>
+      <a href="vignettes.html">Vignettes</a>
     </nav>
     <span class="spacer"></span>
     <nav><a href="https://github.com/jlaffy/protein_sets" target="_blank" rel="noopener">GitHub ↗</a></nav>
@@ -32,7 +33,7 @@
       <span class="badge">python</span>
       <span class="badge">reviewed human proteome · 20,416 proteins</span>
       <span class="badge">auto-downloading cache</span>
-      <span class="badge">MIT-style research tool</span>
+      <span class="badge">/protein-sets Claude Code skill</span>
     </div>
     <p class="lead">
       Every query — a named set, an annotation region, a synthetic-variant transform, or a bespoke study —
@@ -41,6 +42,19 @@
     </p>
   </section>
 
+  <div class="toc">
+    <strong>On this page</strong>
+    <ol>
+      <li><a href="#overview">What it is</a></li>
+      <li><a href="#catalog">Named-set catalog</a></li>
+      <li><a href="#claude">Using it from Claude Code (the <code>/protein-sets</code> skill)</a></li>
+      <li><a href="#install">Install &amp; data root</a></li>
+      <li><a href="#contract">One contract, many outputs</a></li>
+      <li><a href="vignettes.html">Worked vignettes (real code + output) →</a></li>
+    </ol>
+  </div>
+
+  <h2 id="overview"><span class="num">#</span>What it is</h2>
   <p>
     <strong>protein_sets</strong> is the canonical lens for any question about <em>subsets, annotations, or
     categories</em> of proteins, defaulting to the reviewed human UniProt proteome. The core idea is simple:
@@ -96,35 +110,11 @@
     </div>
   </div>
 
-  <p style="margin-top:1.8rem;">
-    <a href="vignettes.html"><strong>→ Jump to the worked vignettes</strong></a> — real code, real captured output:
-    resolving IDs, querying sets, building sequence/FASTA sets, slicing domains of signal-peptide proteins,
-    custom tables, and a mutation-scan teaser.
-  </p>
-
-  <h2 id="install"><span class="num">$</span>Install</h2>
-  <pre><code class="language-bash">pip install git+https://github.com/jlaffy/protein_sets</code></pre>
-  <p>Then:</p>
-  <pre><code class="language-python">from protein_sets import load_proteome, signal_peptide, secretome, resolve
-
-load_proteome()          # full reviewed-human UniProt table (auto-downloads once)
-signal_peptide()         # proteins with a signal-peptide annotation
-secretome()              # secreted proteins ∩ reviewed human
-resolve("secretome")     # → list of UniProt accessions</code></pre>
-
-  <div class="note">
-    <strong>Data root &amp; auto-download.</strong> On first use the package fetches what it needs
-    (UniProt, HPA, CSPA, humantfs, UniRef) into a local cache; every later call is instant, and a 30-day TTL
-    refreshes stale data automatically. The cache location is resolved once at import, in priority order:
-    <code>$PROTEIN_SETS_DATA</code> → <code>/ewsc/jlaffy/protein_sets</code> (shared NFS cache, if present) →
-    <code>~/.cache/protein_sets</code> (fresh-install default). InterPro-backed domain regions currently need a
-    local InterPro file (available on-cluster; auto-download planned for 2.0); everything else works
-    out-of-the-box.
-  </div>
-
   <h2 id="catalog"><span class="num">#</span>Named-set catalog</h2>
-  <p class="section-intro">Live counts against the currently cached reviewed-human proteome
-  (<strong>20,416</strong> proteins). Computed, not hardcoded — they shift when UniProt refreshes.</p>
+  <p class="section-intro">The sets that ship with the package, with live counts against the currently cached
+  reviewed-human proteome (<strong>20,416</strong> proteins). Computed, not hardcoded — they shift when UniProt
+  refreshes. Any of these names is addressable everywhere: <code>resolve("secretome")</code>,
+  <code>signal_peptide()</code>, <code>pfam_regions("transmem")</code>, <code>mutation_scan("secretome")</code>.</p>
 
   <div class="table-wrap">
   <table class="catalog">
@@ -151,7 +141,113 @@ resolve("secretome")     # → list of UniProt accessions</code></pre>
     <code>transmem_orthologs</code>, and alternative-isoform sets — see <code>list_dynamic()</code>.
   </p>
 
-  <h2><span class="num">↓</span>One contract, many outputs</h2>
+  <p style="margin-top:1.4rem;">
+    <a href="vignettes.html"><strong>→ Jump to the worked vignettes</strong></a> — real code, real captured output:
+    resolving IDs, querying sets, building sequence/FASTA sets, slicing domains of signal-peptide proteins,
+    custom tables, and a mutation-scan teaser.
+  </p>
+
+  <h2 id="claude"><span class="num">▷</span>Using it from Claude Code</h2>
+  <p class="section-intro">
+    protein_sets ships a Claude Code skill, <code>/protein-sets</code>. You don't have to remember function
+    names — you describe the protein question in plain language and the skill routes it to the right call,
+    runs it, and hands back the result. It's the same package underneath; the skill is just a natural-language
+    front door that knows the catalog, the region builders, the transforms, and the studies registry.
+  </p>
+
+  <div class="note">
+    <strong>Setup.</strong> <code>SKILL.md</code> ships in the repo. Copy it to
+    <code>~/.claude/skills/protein-sets/</code> (or a project's <code>.claude/skills/</code>) and the
+    <code>/protein-sets</code> routing becomes available in Claude Code. The examples below are representative
+    interactions; every number shown is real, captured from the live cached proteome.
+  </div>
+
+  <!-- task A -->
+  <h3>Task: “how many human proteins have a signal peptide?”</h3>
+  <div class="chat">
+    <div class="bubble user"><span class="who">You</span>how many human proteins have a signal peptide?</div>
+    <div class="bubble asst"><span class="who">Claude</span><span class="route">routes to the <code>signal_peptide</code> named set</span>
+      <strong>3,614</strong> reviewed human proteins carry a signal-peptide annotation
+      (<code>signal_peptide()</code>). If you want only experimentally-evidenced ones, that's
+      <code>signal_peptide_strict</code> → <strong>738</strong>.</div>
+  </div>
+  <div class="io-label">equivalent code</div>
+  <pre><code class="language-python">from protein_sets import signal_peptide
+len(signal_peptide())          # 3614</code></pre>
+  <p class="how"><strong>How it decides:</strong> “has a signal peptide” is a recognised annotation, so the skill
+  checks <code>NAMED_SETS</code> first, finds the registered <code>signal_peptide</code> set, and answers with a
+  live <code>len()</code> rather than re-deriving the filter. It never hardcodes the count — UniProt refreshes
+  change it.</p>
+
+  <!-- task B -->
+  <h3>Task: “give me the secretome as a FASTA”</h3>
+  <div class="chat">
+    <div class="bubble user"><span class="who">You</span>write me a FASTA of all secreted human proteins</div>
+    <div class="bubble asst"><span class="who">Claude</span><span class="route">resolves <code>secretome</code> → sequences → FASTA</span>
+      Done — <strong>2,421</strong> secreted proteins written to <code>secretome.fa</code>. The
+      <code>secretome</code> set is HPA-predicted-secreted unioned with UniProt secreted evidence, intersected
+      with reviewed human.</div>
+  </div>
+  <div class="io-label">equivalent code</div>
+  <pre><code class="language-python">from protein_sets import secretome, to_fasta
+
+df = secretome().rename(columns={"Entry": "item_id", "Sequence": "sequence"})
+to_fasta(df, "secretome.fa")   # 2421 records</code></pre>
+  <p class="how"><strong>How it decides:</strong> “secreted human proteins” maps to the <code>secretome</code>
+  named set (the skill prefers a registered set over an ad-hoc keyword filter). “as a FASTA” selects the FASTA
+  output form, so it routes the resolved DataFrame through <code>to_fasta</code>. Same query, different output
+  shape — IDs, a table, or FASTA are all one step away from the same set.</p>
+
+  <!-- task C -->
+  <h3>Task: “get me the Pfam domains of signal-peptide proteins”</h3>
+  <div class="chat">
+    <div class="bubble user"><span class="who">You</span>extract the Pfam domain sub-sequences for every protein that has a signal peptide</div>
+    <div class="bubble asst"><span class="who">Claude</span><span class="route">region builder on a named set</span>
+      That's a <em>region</em> query — sub-sequences <em>within</em> the proteins, not whole proteins. I ran
+      <code>pfam_regions("signal_peptide")</code> →
+      <strong>10,244</strong> Pfam domains across <strong>3,614</strong> signal-peptide proteins, each with its
+      <code>start</code>/<code>end</code> coordinates and the sliced sequence. (This one is InterPro-backed — it
+      needs the InterPro file, available on-cluster.)</div>
+  </div>
+  <div class="io-label">equivalent code</div>
+  <pre><code class="language-python">from protein_sets import pfam_regions
+
+pf = pfam_regions("signal_peptide")        # 10244 region rows
+pf[["item_id", "uniprot", "start", "end", "length", "sequence"]].head()</code></pre>
+  <p class="how"><strong>How it decides:</strong> the skill distinguishes <em>whole proteins</em> from
+  <em>sub-sequences</em>. The words “domains … sub-sequences … within” signal a region query, so instead of a
+  named set it reaches for a region builder (<code>pfam_regions</code>) and feeds it the <code>signal_peptide</code>
+  set as the parent population. Structural domains come from InterPro by convention; a signal-peptide <em>span</em>
+  would instead come from UniProt features (<code>signal_peptide_regions</code>), which needs no extra data.</p>
+
+  <p class="section-intro" style="font-size:0.88rem; margin-top:1.6rem;">
+    The routing logic — check <code>NAMED_SETS</code> and <code>list_dynamic()</code> first, then region
+    builders, then transforms and studies; prefer a registered set over an ad-hoc filter; and propose a
+    definition before answering when a category isn't formalised yet — is exactly what's written in
+    <a href="https://github.com/jlaffy/protein_sets/blob/main/SKILL.md" target="_blank" rel="noopener"><code>SKILL.md</code></a>.
+  </p>
+
+  <h2 id="install"><span class="num">$</span>Install</h2>
+  <pre><code class="language-bash">pip install git+https://github.com/jlaffy/protein_sets</code></pre>
+  <p>Then:</p>
+  <pre><code class="language-python">from protein_sets import load_proteome, signal_peptide, secretome, resolve
+
+load_proteome()          # full reviewed-human UniProt table (auto-downloads once)
+signal_peptide()         # proteins with a signal-peptide annotation
+secretome()              # secreted proteins ∩ reviewed human
+resolve("secretome")     # → list of UniProt accessions</code></pre>
+
+  <div class="note">
+    <strong>Data root &amp; auto-download.</strong> On first use the package fetches what it needs
+    (UniProt, HPA, CSPA, humantfs, UniRef) into a local cache; every later call is instant, and a 30-day TTL
+    refreshes stale data automatically. The cache location is resolved once at import, in priority order:
+    <code>$PROTEIN_SETS_DATA</code> → <code>/ewsc/jlaffy/protein_sets</code> (shared NFS cache, if present) →
+    <code>~/.cache/protein_sets</code> (fresh-install default). InterPro-backed domain regions currently need a
+    local InterPro file (available on-cluster; auto-download planned for 2.0); everything else works
+    out-of-the-box.
+  </div>
+
+  <h2 id="contract"><span class="num">↓</span>One contract, many outputs</h2>
   <p>Each query can be returned three ways, whichever the downstream tool needs:</p>
   <div class="callout-cards">
     <div class="card"><h4>DataFrame</h4><p>The canonical output, carrying <code>df.attrs['provenance']</code> for full lineage.</p></div>

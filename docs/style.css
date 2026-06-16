@@ -188,3 +188,34 @@ footer .inner { max-width: var(--maxw); margin: 0 auto; }
 .tag.built { background: #3fb95022; border: 1px solid #3fb95066; color: var(--green); }
 .tag.byo { background: #1f6feb22; border: 1px solid #1f6feb66; color: var(--accent); }
 .card h4 { display: flex; align-items: center; flex-wrap: wrap; gap: 0.1rem; }
+
+/* Claude skill chat bubbles */
+.chat { margin: 1rem 0 0.6rem; display: flex; flex-direction: column; gap: 0.55rem; }
+.bubble {
+  border-radius: 12px; padding: 0.75rem 1rem 0.8rem; font-size: 0.92rem;
+  max-width: 92%; position: relative; line-height: 1.55;
+}
+.bubble .who {
+  display: block; font-family: var(--mono); font-size: 0.66rem; text-transform: uppercase;
+  letter-spacing: 0.07em; margin-bottom: 0.3rem; opacity: 0.85;
+}
+.bubble.user {
+  align-self: flex-end; background: var(--accent-soft);
+  border: 1px solid #1f6feb55; color: var(--text);
+}
+.bubble.user .who { color: var(--accent); }
+.bubble.asst {
+  align-self: flex-start; background: var(--bg-soft);
+  border: 1px solid var(--border); color: var(--text);
+}
+.bubble.asst .who { color: var(--green); }
+.bubble .route {
+  display: inline-block; font-family: var(--mono); font-size: 0.68rem;
+  color: var(--text-dim); background: #0a0e14; border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.1rem 0.45rem; margin-bottom: 0.5rem;
+}
+.how {
+  font-size: 0.9rem; color: var(--text-dim);
+  border-left: 2px solid var(--border); padding-left: 0.85rem; margin: 0.5rem 0 1.5rem;
+}
+.how strong { color: var(--text); }
