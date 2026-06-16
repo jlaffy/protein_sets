@@ -175,3 +175,16 @@ footer .inner { max-width: var(--maxw); margin: 0 auto; }
 .toc li { margin: 0.25rem 0; }
 
 .truncated { color: var(--text-dim); }
+
+.what-list { margin: 0.5rem 0 1.4rem; padding-left: 1.3rem; }
+.what-list li { margin: 0.4rem 0; color: var(--text); }
+.what-list li strong { color: var(--text); }
+
+.tag {
+  font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase;
+  letter-spacing: 0.05em; padding: 0.12rem 0.45rem; border-radius: 999px;
+  vertical-align: middle; margin-left: 0.4rem; font-weight: 600;
+}
+.tag.built { background: #3fb95022; border: 1px solid #3fb95066; color: var(--green); }
+.tag.byo { background: #1f6feb22; border: 1px solid #1f6feb66; color: var(--accent); }
+.card h4 { display: flex; align-items: center; flex-wrap: wrap; gap: 0.1rem; }

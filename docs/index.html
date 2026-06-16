@@ -43,32 +43,56 @@
 
   <p>
     <strong>protein_sets</strong> is the canonical lens for any question about <em>subsets, annotations, or
-    categories</em> of proteins, defaulting to the reviewed human UniProt proteome. It unifies four kinds of thing
-    behind one interface: <strong>named sets</strong> (secretome, transmembrane, signal-peptide, surfaceome,
-    transcription factors…), <strong>regions</strong> (Pfam domains, signal-peptide spans, sites — sub-sequences
-    within proteins), <strong>transforms</strong> (mutation scans and other synthetic-sequence experiments), and
-    <strong>studies</strong> (your own bespoke per-project datasets). All reference data auto-downloads on first
-    use and is cached locally — no manual file wrangling.
+    categories</em> of proteins, defaulting to the reviewed human UniProt proteome. The core idea is simple:
+    <strong>pick a subset of proteins by whatever annotation you care about</strong> — secreted, transmembrane,
+    has a signal peptide, is a transcription factor, lives at the cell surface — and then get back exactly the
+    shape you need from it:
+  </p>
+  <ul class="what-list">
+    <li><strong>just the IDs</strong> — a list of UniProt accessions;</li>
+    <li><strong>metadata in tabular form</strong> — pick any columns (gene, length, topology, GO, keywords…) as a DataFrame;</li>
+    <li><strong>the full sequences</strong> — as a DataFrame or written straight to FASTA;</li>
+    <li><strong>sub-sequences</strong> — slice out regions <em>within</em> those proteins (Pfam domains, signal-peptide spans, sites) with coordinates and the exact sliced string;</li>
+    <li><strong>mutant forms</strong> — generate synthetic variants of the chosen proteins (e.g. a window mutation scan) on the same contract.</li>
+  </ul>
+  <p>
+    Those five outputs map onto the package's layers. It unifies four kinds of thing behind one interface:
+    <strong>named sets</strong> (secretome, transmembrane, signal-peptide, surfaceome, transcription factors…),
+    <strong>regions</strong> (Pfam domains, signal-peptide spans, sites — sub-sequences within proteins),
+    <strong>transforms</strong> (mutation scans and other synthetic-sequence experiments), and
+    <strong>studies</strong> (your own bespoke per-project datasets). Whatever you pick — a named set, a region,
+    a transform, a study — comes back on one row contract <code>(item_id, uniprot, sequence, …)</code>, so the
+    output of one layer feeds straight into the next and into downstream embedding / structure tools.
+  </p>
+  <p>
+    <strong>Batteries included, but extensible.</strong> The named sets, region builders and transforms above
+    ship with the package and run against auto-downloading reference data (UniProt, HPA, CSPA, humantfs, UniRef)
+    — no manual file wrangling, every later call is instant. Two things you bring yourself: a new
+    <strong>named set</strong> is a few lines registered in the package, and a <strong>study</strong> is a bespoke
+    per-project dataset you drop under <code>studies/&lt;name&gt;/</code> — once registered it resolves and slices
+    exactly like the built-in sets.
   </p>
 
   <div class="callout-cards">
     <div class="card">
-      <h4>Named sets</h4>
+      <h4>Named sets <span class="tag built">built-in + extensible</span></h4>
       <p>Logically-defined filters inside a universe: <code>secretome()</code>, <code>transmem()</code>,
-      <code>signal_peptide()</code>, set algebra and UniRef dedup.</p>
+      <code>signal_peptide()</code>, set algebra and UniRef dedup. A dozen ship by default; add your own in a few
+      lines.</p>
     </div>
     <div class="card">
-      <h4>Regions</h4>
+      <h4>Regions <span class="tag built">built-in</span></h4>
       <p>Sub-sequences within proteins: Pfam domains, signal-peptide spans, sites — with coordinates and the
       sliced sequence.</p>
     </div>
     <div class="card">
-      <h4>Transforms</h4>
+      <h4>Transforms <span class="tag built">built-in</span></h4>
       <p>Synthetic sequences derived from real proteins: window mutation scans today, more to come.</p>
     </div>
     <div class="card">
-      <h4>Studies</h4>
-      <p>Register a bespoke dataset under <code>studies/&lt;name&gt;/</code> and it resolves like any named set.</p>
+      <h4>Studies <span class="tag byo">bring your own</span></h4>
+      <p>Drop a bespoke per-project dataset under <code>studies/&lt;name&gt;/</code> and it resolves and slices
+      like any named set.</p>
     </div>
   </div>
 
