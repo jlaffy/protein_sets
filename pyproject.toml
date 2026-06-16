@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "protein-sets"
+version = "0.1.0"
+description = "Resolve, filter, and subset protein universes by annotation (UniProt, HPA, CSPA, InterPro, OMA)."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "openpyxl",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["protein_sets*"]
