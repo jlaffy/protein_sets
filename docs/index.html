@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>protein_sets — a row-contract lens on human proteins</title>
+<meta name="description" content="Resolve, filter, subset and transform human protein universes by annotation — one row contract across named sets, regions, transforms and studies." />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<header class="topnav">
+  <div class="inner">
+    <span class="brand">protein_sets</span>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="vignettes.html">Vignettes</a>
+      <a href="#catalog">Catalog</a>
+      <a href="#install">Install</a>
+    </nav>
+    <span class="spacer"></span>
+    <nav><a href="https://github.com/jlaffy/protein_sets" target="_blank" rel="noopener">GitHub ↗</a></nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>protein_sets</h1>
+    <p class="tagline">A single row contract for selecting, subsetting, slicing, and transforming human protein sequences by annotation.</p>
+    <div class="badges">
+      <span class="badge">python</span>
+      <span class="badge">reviewed human proteome · 20,416 proteins</span>
+      <span class="badge">auto-downloading cache</span>
+      <span class="badge">MIT-style research tool</span>
+    </div>
+    <p class="lead">
+      Every query — a named set, an annotation region, a synthetic-variant transform, or a bespoke study —
+      returns a DataFrame on the same <code>(item_id, uniprot, sequence, …)</code> contract, so the
+      output of one layer flows straight into the next and into downstream embedding / structure tools.
+    </p>
+  </section>
+
+  <p>
+    <strong>protein_sets</strong> is the canonical lens for any question about <em>subsets, annotations, or
+    categories</em> of proteins, defaulting to the reviewed human UniProt proteome. It unifies four kinds of thing
+    behind one interface: <strong>named sets</strong> (secretome, transmembrane, signal-peptide, surfaceome,
+    transcription factors…), <strong>regions</strong> (Pfam domains, signal-peptide spans, sites — sub-sequences
+    within proteins), <strong>transforms</strong> (mutation scans and other synthetic-sequence experiments), and
+    <strong>studies</strong> (your own bespoke per-project datasets). All reference data auto-downloads on first
+    use and is cached locally — no manual file wrangling.
+  </p>
+
+  <div class="callout-cards">
+    <div class="card">
+      <h4>Named sets</h4>
+      <p>Logically-defined filters inside a universe: <code>secretome()</code>, <code>transmem()</code>,
+      <code>signal_peptide()</code>, set algebra and UniRef dedup.</p>
+    </div>
+    <div class="card">
+      <h4>Regions</h4>
+      <p>Sub-sequences within proteins: Pfam domains, signal-peptide spans, sites — with coordinates and the
+      sliced sequence.</p>
+    </div>
+    <div class="card">
+      <h4>Transforms</h4>
+      <p>Synthetic sequences derived from real proteins: window mutation scans today, more to come.</p>
+    </div>
+    <div class="card">
+      <h4>Studies</h4>
+      <p>Register a bespoke dataset under <code>studies/&lt;name&gt;/</code> and it resolves like any named set.</p>
+    </div>
+  </div>
+
+  <p style="margin-top:1.8rem;">
+    <a href="vignettes.html"><strong>→ Jump to the worked vignettes</strong></a> — real code, real captured output:
+    resolving IDs, querying sets, building sequence/FASTA sets, slicing domains of signal-peptide proteins,
+    custom tables, and a mutation-scan teaser.
+  </p>
+
+  <h2 id="install"><span class="num">$</span>Install</h2>
+  <pre><code class="language-bash">pip install git+https://github.com/jlaffy/protein_sets</code></pre>
+  <p>Then:</p>
+  <pre><code class="language-python">from protein_sets import load_proteome, signal_peptide, secretome, resolve
+
+load_proteome()          # full reviewed-human UniProt table (auto-downloads once)
+signal_peptide()         # proteins with a signal-peptide annotation
+secretome()              # secreted proteins ∩ reviewed human
+resolve("secretome")     # → list of UniProt accessions</code></pre>
+
+  <div class="note">
+    <strong>Data root &amp; auto-download.</strong> On first use the package fetches what it needs
+    (UniProt, HPA, CSPA, humantfs, UniRef) into a local cache; every later call is instant, and a 30-day TTL
+    refreshes stale data automatically. The cache location is resolved once at import, in priority order:
+    <code>$PROTEIN_SETS_DATA</code> → <code>/ewsc/jlaffy/protein_sets</code> (shared NFS cache, if present) →
+    <code>~/.cache/protein_sets</code> (fresh-install default). InterPro-backed domain regions currently need a
+    local InterPro file (available on-cluster; auto-download planned for 2.0); everything else works
+    out-of-the-box.
+  </div>
+
+  <h2 id="catalog"><span class="num">#</span>Named-set catalog</h2>
+  <p class="section-intro">Live counts against the currently cached reviewed-human proteome
+  (<strong>20,416</strong> proteins). Computed, not hardcoded — they shift when UniProt refreshes.</p>
+
+  <div class="table-wrap">
+  <table class="catalog">
+    <thead><tr><th>set</th><th>definition</th><th class="count">count</th></tr></thead>
+    <tbody>
+      <tr><td>reviewed_human</td><td>all reviewed human UniProt entries (the default universe)</td><td class="count">20,416</td></tr>
+      <tr><td>signal_peptide</td><td>has a signal-peptide annotation</td><td class="count">3,614</td></tr>
+      <tr><td>signal_peptide_strict</td><td>signal peptide with experimental evidence</td><td class="count">738</td></tr>
+      <tr><td>transmem</td><td>has a transmembrane annotation</td><td class="count">5,228</td></tr>
+      <tr><td>transmem_strict</td><td>transmembrane with experimental evidence</td><td class="count">285</td></tr>
+      <tr><td>sp_strict_no_tm</td><td>strict signal peptide, no transmembrane</td><td class="count">527</td></tr>
+      <tr><td>secretome</td><td>secreted proteins (HPA ∪ UniProt evidence) ∩ reviewed human</td><td class="count">2,421</td></tr>
+      <tr><td>secretome_hpa</td><td>HPA Predicted Secreted ∩ reviewed human</td><td class="count">1,870</td></tr>
+      <tr><td>secretome_uniprot</td><td>UniProt secreted-evidence ∩ reviewed human</td><td class="count">2,123</td></tr>
+      <tr><td>surfaceome</td><td>CSPA surface proteins (high + putative) ∩ reviewed human</td><td class="count">1,241</td></tr>
+      <tr><td>surfaceome_strict</td><td>CSPA category 1 (high confidence) only</td><td class="count">996</td></tr>
+      <tr><td>surfaceome_all</td><td>all CSPA human entries incl. category 3</td><td class="count">1,444</td></tr>
+      <tr><td>transcription_factors</td><td>Lambert et al. 2018 curated human TFs, mapped to reviewed human</td><td class="count">1,631</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="section-intro" style="font-size:0.85rem;">
+    Full registry also includes <code>secretome_with_sp</code>, <code>no_sp_no_tm</code>,
+    <code>transmem_orthologs</code>, and alternative-isoform sets — see <code>list_dynamic()</code>.
+  </p>
+
+  <h2><span class="num">↓</span>One contract, many outputs</h2>
+  <p>Each query can be returned three ways, whichever the downstream tool needs:</p>
+  <div class="callout-cards">
+    <div class="card"><h4>DataFrame</h4><p>The canonical output, carrying <code>df.attrs['provenance']</code> for full lineage.</p></div>
+    <div class="card"><h4>IDs</h4><p><code>resolve(query)</code> returns a plain list of UniProt accessions.</p></div>
+    <div class="card"><h4>FASTA</h4><p><code>to_fasta(df, path)</code> writes records for non-Python tools.</p></div>
+  </div>
+
+  <p style="margin-top:2rem;">
+    <a href="vignettes.html"><strong>→ See it all working, with real output, in the vignettes.</strong></a>
+  </p>
+</main>
+
+<footer>
+  <div class="inner">
+    <p><code>protein_sets</code> · <a href="https://github.com/jlaffy/protein_sets" target="_blank" rel="noopener">github.com/jlaffy/protein_sets</a></p>
+    <p style="font-size:0.8rem;">Counts captured live from the cached reviewed-human proteome. Sequences truncated for display.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>protein_sets — vignettes</title>
+<meta name="description" content="Worked examples with real captured output: resolving IDs, querying named sets, building sequence and FASTA sets, slicing domains and signal peptides, custom tables, and mutation scans." />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<header class="topnav">
+  <div class="inner">
+    <span class="brand">protein_sets</span>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="vignettes.html">Vignettes</a>
+      <a href="#v1">IDs</a>
+      <a href="#v2">Query</a>
+      <a href="#v3">Sequences</a>
+      <a href="#v4">Regions</a>
+      <a href="#v5">Tables</a>
+      <a href="#v6">Transforms</a>
+    </nav>
+    <span class="spacer"></span>
+    <nav><a href="https://github.com/jlaffy/protein_sets" target="_blank" rel="noopener">GitHub ↗</a></nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Vignettes</h1>
+    <p class="tagline">Six worked patterns. Every snippet below was run against the live cached
+    reviewed-human proteome and the output captured verbatim.</p>
+  </section>
+
+  <div class="toc">
+    <strong>On this page</strong>
+    <ol>
+      <li><a href="#v1">Get UniProt IDs for a named set</a></li>
+      <li><a href="#v2">Query directly — the proteome and the named sets</a></li>
+      <li><a href="#v3">Get sequence sets — DataFrame &amp; FASTA</a></li>
+      <li><a href="#v4">Get sub-sequences — domains of signal-peptide proteins</a></li>
+      <li><a href="#v5">Custom tabular data — pick your own columns</a></li>
+      <li><a href="#v6">Transform teaser — a mutation scan</a></li>
+    </ol>
+  </div>
+
+  <!-- ===================== V1 ===================== -->
+  <h2 id="v1"><span class="num">1</span>Get UniProt IDs for a named set</h2>
+  <p class="section-intro">When accessions are all you need, <code>resolve()</code> returns a plain list.
+  <code>resolve_dynamic()</code> additionally hands back a <code>{accession: sequence}</code> dict and the
+  full DataFrame.</p>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">from protein_sets import resolve, resolve_dynamic
+
+ids = resolve("secretome")          # → list of UniProt accessions
+len(ids), ids[:8]</code></pre>
+
+  <div class="io-label out">output</div>
+  <div class="output">(2421,
+ ['A0A0K2S4Q6', 'A1E959', 'A1KZ92', 'A1L4H1',
+  'A2VEC9', 'A4D0S4', 'A4D1T9', 'A5D8T8'])</div>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">ids, seqs, df = resolve_dynamic("secretome")
+ids[0], len(seqs[ids[0]]), seqs[ids[0]][:30] + "…"</code></pre>
+
+  <div class="io-label out">output</div>
+  <div class="output">('A0A0K2S4Q6', 201, 'MTQRAGAAMLPSALLLLCVPGCLTVSGPST…')</div>
+
+  <hr class="div" />
+
+  <!-- ===================== V2 ===================== -->
+  <h2 id="v2"><span class="num">2</span>Query directly — the proteome and the named sets</h2>
+  <p class="section-intro">Load the whole reviewed-human table, then resolve any registered set to a live
+  count. Numbers are computed from the cached data, never hardcoded.</p>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">from protein_sets import load_proteome, resolve
+
+prot = load_proteome()              # full reviewed-human UniProt table
+len(prot), prot.shape[1]            # rows, columns</code></pre>
+
+  <div class="io-label out">output</div>
+  <div class="output">(20416, 39)</div>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">catalog = [
+    "reviewed_human", "signal_peptide", "signal_peptide_strict",
+    "transmem", "transmem_strict", "sp_strict_no_tm",
+    "secretome", "secretome_hpa", "secretome_uniprot",
+    "surfaceome", "surfaceome_strict", "surfaceome_all",
+    "transcription_factors",
+]
+{name: len(resolve(name)) for name in catalog}</code></pre>
+
+  <div class="io-label out">output</div>
+  <div class="table-wrap">
+  <table class="catalog">
+    <thead><tr><th>named set</th><th class="count">count</th></tr></thead>
+    <tbody>
+      <tr><td>reviewed_human</td><td class="count">20,416</td></tr>
+      <tr><td>signal_peptide</td><td class="count">3,614</td></tr>
+      <tr><td>signal_peptide_strict</td><td class="count">738</td></tr>
+      <tr><td>transmem</td><td class="count">5,228</td></tr>
+      <tr><td>transmem_strict</td><td class="count">285</td></tr>
+      <tr><td>sp_strict_no_tm</td><td class="count">527</td></tr>
+      <tr><td>secretome</td><td class="count">2,421</td></tr>
+      <tr><td>secretome_hpa</td><td class="count">1,870</td></tr>
+      <tr><td>secretome_uniprot</td><td class="count">2,123</td></tr>
+      <tr><td>surfaceome</td><td class="count">1,241</td></tr>
+      <tr><td>surfaceome_strict</td><td class="count">996</td></tr>
+      <tr><td>surfaceome_all</td><td class="count">1,444</td></tr>
+      <tr><td>transcription_factors</td><td class="count">1,631</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <hr class="div" />
+
+  <!-- ===================== V3 ===================== -->
+  <h2 id="v3"><span class="num">3</span>Get sequence sets — DataFrame &amp; FASTA</h2>
+  <p class="section-intro">A named set is a DataFrame with every UniProt column, including the full
+  <code>Sequence</code>. Hand it to <code>to_fasta()</code> for non-Python tools.</p>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">from protein_sets import secretome
+
+df = secretome()                                   # 2,421 rows, all UniProt columns
+df[["Entry", "Gene Names (primary)", "Length", "Sequence"]].head()</code></pre>
+
+  <div class="io-label out">output</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Entry</th><th>Gene</th><th class="num">Length</th><th>Sequence (truncated)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">A0A0K2S4Q6</td><td>CD300H</td><td class="num">201</td><td class="mono">MTQRAGAAMLPSALLLLCVPGCLTVSGPST<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A1E959</td><td>ODAM</td><td class="num">279</td><td class="mono">MKIIILLGFLGATLSAPLIPQRLMSASNSN<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A1KZ92</td><td>PXDNL</td><td class="num">1463</td><td class="mono">MEPRLFCWTTLFLLAGWCLPGLPCPSRCLC<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A1L4H1</td><td>SSC5D</td><td class="num">1573</td><td class="mono">MRVLACLLAALVGIQAVERLRLADGPHGCA<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A2VEC9</td><td>SSPOP</td><td class="num">5150</td><td class="mono">MLLPALLFGMAWALADGRWCEWTETIRVEE<span class="truncated">…</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">from protein_sets import to_fasta
+
+# to_fasta expects (item_id, sequence) columns — rename a named-set frame:
+fa = df.head(3).rename(columns={"Entry": "item_id", "Sequence": "sequence"})
+to_fasta(fa, "secretome_head.fa")</code></pre>
+
+  <div class="io-label out">output — secretome_head.fa</div>
+  <div class="output">&gt;A0A0K2S4Q6
+MTQRAGAAMLPSALLLLCVPGCLTVSGPSTVMGAVGESLSVQCRYEEKYK…
+&gt;A1E959
+MKIIILLGFLGATLSAPLIPQRLMSASNSNELLLNLNNGQLLPLQLQGPL…
+&gt;A1KZ92
+MEPRLFCWTTLFLLAGWCLPGLPCPSRCLCFKSTVRCMHLMLDHIPQVPQ…</div>
+  <p class="section-intro" style="font-size:0.85rem;">Region and transform frames already carry an
+  <code>item_id</code>/<code>sequence</code> pair, so they go straight into <code>to_fasta()</code> with no rename.</p>
+
+  <hr class="div" />
+
+  <!-- ===================== V4 ===================== -->
+  <h2 id="v4"><span class="num">4</span>Get sub-sequences — domains of signal-peptide proteins</h2>
+  <p class="section-intro">The headline move: slice <em>regions within</em> sequences. Each region row carries
+  <code>start</code>/<code>end</code> coordinates (1-indexed, inclusive) and the exact sliced
+  <code>sequence</code>. Here we take everything in the <code>signal_peptide</code> set and pull out its
+  domains two ways.</p>
+
+  <h3>4a · Signal-peptide spans — UniProt features (works out-of-the-box)</h3>
+  <p>Built straight from the UniProt feature columns; no extra data needed.</p>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">from protein_sets import signal_peptide_regions
+
+sp = signal_peptide_regions("signal_peptide")      # the SP span of every SP protein
+len(sp)</code></pre>
+  <div class="io-label out">output</div>
+  <div class="output">3604</div>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">sp[["item_id", "uniprot", "start", "end", "length", "sequence"]].head(6)</code></pre>
+  <div class="io-label out">output</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>item_id</th><th>uniprot</th><th class="num">start</th><th class="num">end</th><th class="num">len</th><th>sequence</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">A0A0K2S4Q6_SIGNAL_1_24</td><td class="mono">A0A0K2S4Q6</td><td class="num">1</td><td class="num">24</td><td class="num">24</td><td class="mono">MTQRAGAAMLPSALLLLCVPGCLT</td></tr>
+      <tr><td class="mono">A0A1B0GTW7_SIGNAL_1_20</td><td class="mono">A0A1B0GTW7</td><td class="num">1</td><td class="num">20</td><td class="num">20</td><td class="mono">MLLLLLLLLLLPPLVLRVAA</td></tr>
+      <tr><td class="mono">A1E959_SIGNAL_1_15</td><td class="mono">A1E959</td><td class="num">1</td><td class="num">15</td><td class="num">15</td><td class="mono">MKIIILLGFLGATLS</td></tr>
+      <tr><td class="mono">A1KZ92_SIGNAL_1_23</td><td class="mono">A1KZ92</td><td class="num">1</td><td class="num">23</td><td class="num">23</td><td class="mono">MEPRLFCWTTLFLLAGWCLPGLP</td></tr>
+      <tr><td class="mono">A1L4H1_SIGNAL_1_16</td><td class="mono">A1L4H1</td><td class="num">1</td><td class="num">16</td><td class="num">16</td><td class="mono">MRVLACLLAALVGIQA</td></tr>
+      <tr><td class="mono">A2VDJ0_SIGNAL_1_40</td><td class="mono">A2VDJ0</td><td class="num">1</td><td class="num">40</td><td class="num">40</td><td class="mono">MAGLRRPQPGCYCRTAAAVNLLLGVFQVLLPCCRPGGAQG</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>4b · Pfam domains — InterPro-backed</h3>
+  <div class="note">
+    <strong>Needs InterPro data.</strong> <code>pfam_regions()</code> is backed by InterPro domain
+    boundaries. That file is available on-cluster (and auto-download is planned for 2.0); the output below was
+    captured from the live InterPro-backed cache.
+  </div>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">from protein_sets import pfam_regions
+
+pf = pfam_regions("signal_peptide")                # all Pfam domains across SP proteins
+len(pf)</code></pre>
+  <div class="io-label out">output</div>
+  <div class="output">10244</div>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">pf[["item_id", "uniprot", "source_id", "start", "end", "length", "sequence"]].head(6)</code></pre>
+  <div class="io-label out">output</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>item_id</th><th>uniprot</th><th>Pfam</th><th class="num">start</th><th class="num">end</th><th class="num">len</th><th>sequence</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">A0A075B6H7_PF07686_26_110</td><td class="mono">A0A075B6H7</td><td class="mono">PF07686</td><td class="num">26</td><td class="num">110</td><td class="num">85</td><td class="mono">QSPPTLSLSPGERVTLSCRASQSVSSSYLTWYQQK<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A0A075B6H8_PF07686_28_111</td><td class="mono">A0A075B6H8</td><td class="mono">PF07686</td><td class="num">28</td><td class="num">111</td><td class="num">84</td><td class="mono">QSPSFLSASVGDRVSIICWASEGISSNLAWYLQKP<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A0A075B6H9_PF07686_26_116</td><td class="mono">A0A075B6H9</td><td class="mono">PF07686</td><td class="num">26</td><td class="num">116</td><td class="num">91</td><td class="mono">QSPSASASLGASVKLTCTLSSGHSSYAIAWHQQQP<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A0A075B6I0_PF07686_30_116</td><td class="mono">A0A075B6I0</td><td class="mono">PF07686</td><td class="num">30</td><td class="num">116</td><td class="num">87</td><td class="mono">QEPSFSVSPGGTVTLTCGLSSGSVSTSYYPSWYQQ<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A0A075B6I1_PF07686_27_118</td><td class="mono">A0A075B6I1</td><td class="mono">PF07686</td><td class="num">27</td><td class="num">118</td><td class="num">92</td><td class="mono">QSSSASASLGSSVKLTCTLSSGHSSYIIAWHQQQP<span class="truncated">…</span></td></tr>
+      <tr><td class="mono">A0A075B6I3_PF07686_24_120</td><td class="mono">A0A075B6I3</td><td class="mono">PF07686</td><td class="num">24</td><td class="num">120</td><td class="num">97</td><td class="mono">TQPPSLSASPGATARLPCTLSSDLSVGGKNMFWYQ<span class="truncated">…</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="section-intro" style="font-size:0.85rem;"><code>item_id</code> encodes provenance:
+  <code>{uniprot}_{pfam_acc}_{start}_{end}</code>. The leading rows here are immunoglobulin V-set domains
+  (<code>PF07686</code>) — signal-peptide-bearing antibody chains.</p>
+
+  <hr class="div" />
+
+  <!-- ===================== V5 ===================== -->
+  <h2 id="v5"><span class="num">5</span>Custom tabular data — pick your own columns</h2>
+  <p class="section-intro">It's just a DataFrame. Select whatever UniProt columns matter for the question —
+  here, accession, gene, length, and the raw signal-peptide annotation.</p>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">prot = load_proteome()
+cols = ["Entry", "Gene Names (primary)", "Length", "Signal peptide"]
+prot[prot["Signal peptide"] != ""][cols].head(6)</code></pre>
+  <div class="io-label out">output</div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Entry</th><th>Gene</th><th class="num">Length</th><th>Signal peptide</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">A0A0K2S4Q6</td><td>CD300H</td><td class="num">201</td><td class="mono">SIGNAL 1..24; /evidence="ECO:0000255"</td></tr>
+      <tr><td class="mono">A0A1B0GTW7</td><td>CIROP</td><td class="num">788</td><td class="mono">SIGNAL 1..20; /evidence="ECO:0000255"</td></tr>
+      <tr><td class="mono">A1E959</td><td>ODAM</td><td class="num">279</td><td class="mono">SIGNAL 1..15; /evidence="ECO:0000255"</td></tr>
+      <tr><td class="mono">A1KZ92</td><td>PXDNL</td><td class="num">1463</td><td class="mono">SIGNAL 1..23; /evidence="ECO:0000255"</td></tr>
+      <tr><td class="mono">A1L4H1</td><td>SSC5D</td><td class="num">1573</td><td class="mono">SIGNAL 1..16; /evidence="ECO:0000255"</td></tr>
+      <tr><td class="mono">A2VDJ0</td><td>TMEM131L</td><td class="num">1609</td><td class="mono">SIGNAL 1..40; /evidence="ECO:0000255"</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="section-intro" style="font-size:0.85rem;">All 39 columns are available — sequence, topology,
+  subcellular location, GO terms, keywords, Pfam/InterPro xrefs, UniRef cluster IDs, and more.</p>
+
+  <hr class="div" />
+
+  <!-- ===================== V6 ===================== -->
+  <h2 id="v6"><span class="num">6</span>Transform teaser — a mutation scan</h2>
+  <p class="section-intro">Transforms produce <em>synthetic</em> sequences from real proteins, on the same
+  row contract. <code>mutation_scan</code> walks a sliding window across the sequence, substituting each
+  position with a panel of amino acids.</p>
+
+  <div class="io-label">code</div>
+  <pre><code class="language-python">from protein_sets import mutation_scan
+
+# insulin: 110 residues × 4-AA alphabet (A,R,E,F) → 440 mutants + 1 WT
+df = mutation_scan("P01308")
+len(df), df["item_id"].head(6).tolist()</code></pre>
+  <div class="io-label out">output</div>
+  <div class="output">(441,
+ ['P01308_wt',
+  'P01308_pos0000_A', 'P01308_pos0000_R',
+  'P01308_pos0000_E', 'P01308_pos0000_F',
+  'P01308_pos0001_A'])</div>
+
+  <p class="section-intro" style="font-size:0.88rem;">
+    The <code>item_id</code> scheme is self-describing: <code>{uid}_wt</code> for the wild type and
+    <code>{uid}_pos{NNNN}_{aa}</code> for each mutant, with the position zero-padded so lexicographic sort
+    equals numeric sort. The frame also carries <code>kind</code>, <code>pos</code>, <code>aa</code>,
+    <code>win_start</code>, <code>win_end</code>, <code>win_len</code> — and feeds
+    <code>esm_embed.embed_regions(df, …)</code> exactly like a real-protein region set.
+  </p>
+
+  <p style="margin-top:2.5rem;"><a href="index.html">← Back to the overview</a></p>
+</main>
+
+<footer>
+  <div class="inner">
+    <p><code>protein_sets</code> · <a href="https://github.com/jlaffy/protein_sets" target="_blank" rel="noopener">github.com/jlaffy/protein_sets</a></p>
+    <p style="font-size:0.8rem;">All counts, tables and FASTA above were captured by running the code against the
+    live cached reviewed-human proteome. Sequences truncated with “…” for display.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
