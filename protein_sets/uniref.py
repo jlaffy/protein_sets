@@ -22,8 +22,9 @@ import urllib.request
 import pandas as pd
 
 from ._cache import cached_pull
+from ._config import data_path
 
-UNIREF_CACHE = '/ewsc/jlaffy/protein_sets/uniref'
+UNIREF_CACHE = data_path('uniref')
 DEFAULT_REFRESH_DAYS = 30
 IDMAPPING_BASE = 'https://rest.uniprot.org/idmapping'
 

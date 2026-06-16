@@ -13,7 +13,9 @@ from datetime import datetime
 
 import pandas as pd
 
-INTERPRO_CACHE = '/ewsc/jlaffy/protein_sets/interpro'
+from ._config import data_path
+
+INTERPRO_CACHE = data_path('interpro')
 
 _PROTEIN2IPR_COLS = ['uniprot', 'interpro_id', 'interpro_name',
                      'member_db_acc', 'start', 'end']

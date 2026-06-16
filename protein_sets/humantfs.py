@@ -22,8 +22,9 @@ import urllib.request
 import pandas as pd
 
 from ._cache import cached_pull
+from ._config import data_path
 
-HUMANTFS_CACHE = '/ewsc/jlaffy/protein_sets/humantfs'
+HUMANTFS_CACHE = data_path('humantfs')
 DEFAULT_REFRESH_DAYS = 30
 
 HUMANTFS_URL = ('http://humantfs.ccbr.utoronto.ca/download/v_1.01/'

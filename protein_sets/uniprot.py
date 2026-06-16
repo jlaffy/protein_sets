@@ -18,8 +18,9 @@ import urllib.parse
 import pandas as pd
 
 from ._cache import cached_pull
+from ._config import data_path
 
-PROTEOME_CACHE = '/ewsc/jlaffy/protein_sets/uniprot/proteomes'
+PROTEOME_CACHE = data_path('uniprot', 'proteomes')
 DEFAULT_REFRESH_DAYS = 30
 
 # As many useful fields as we can ask for in a single TSV. Add more here as

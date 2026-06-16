@@ -25,9 +25,10 @@ import pandas as pd
 import yaml
 
 from .layout import attach_provenance
+from ._config import data_path
 
 
-STUDIES_ROOT = '/ewsc/jlaffy/protein_sets/studies'
+STUDIES_ROOT = data_path('studies')
 
 
 def _study_dir(name, root=None):

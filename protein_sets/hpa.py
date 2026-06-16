@@ -12,8 +12,9 @@ import urllib.parse
 import pandas as pd
 
 from ._cache import cached_pull
+from ._config import data_path
 
-HPA_CACHE = '/ewsc/jlaffy/protein_sets/hpa'
+HPA_CACHE = data_path('hpa')
 DEFAULT_REFRESH_DAYS = 30
 
 # HPA "Predicted secreted proteins" search → TSV download.

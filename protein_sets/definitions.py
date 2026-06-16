@@ -10,6 +10,7 @@ from .hpa import hpa_secretome_uniprots
 from .cspa import cspa_uniprots
 from .humantfs import humantfs_uniprots
 from . import oma as _oma
+from ._config import predictions_path
 
 STRICT_CODE = 'ECO:0000269'
 
@@ -58,8 +59,8 @@ def all_isoforms_of(accession, refresh=False):
 # carries `parent_canonical_has_tm` so callers can filter to lost_tm
 # (parent had TM but alt no longer does) without needing a separate named set.
 
-TMBED_ALT_ISOFORM_TSV = (
-    '/ewsc/jlaffy/predictions/tmbed/reviewed_human_alt_isoforms/protein_level.tsv'
+TMBED_ALT_ISOFORM_TSV = predictions_path(
+    'tmbed', 'reviewed_human_alt_isoforms', 'protein_level.tsv'
 )
 
 

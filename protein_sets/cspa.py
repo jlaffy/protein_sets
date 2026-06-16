@@ -19,8 +19,9 @@ import urllib.request
 import pandas as pd
 
 from ._cache import cached_pull
+from ._config import data_path
 
-CSPA_CACHE = '/ewsc/jlaffy/protein_sets/cspa'
+CSPA_CACHE = data_path('cspa')
 DEFAULT_REFRESH_DAYS = 30
 
 CSPA_URL = 'https://wlab.ethz.ch/CSPA/data/S2_File.xlsx'

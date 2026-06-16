@@ -26,7 +26,9 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from tqdm import tqdm
 
-OMA_CACHE        = Path('/ewsc/jlaffy/protein_sets/oma')
+from ._config import data_path
+
+OMA_CACHE        = Path(data_path('oma'))
 MAPPING_DIR      = OMA_CACHE / 'mapping'
 COVERAGE_PATH    = OMA_CACHE / 'coverage' / 'oma_coverage.csv'
 METADATA_PATH    = OMA_CACHE / 'metadata' / 'oma_group_metadata.csv'
